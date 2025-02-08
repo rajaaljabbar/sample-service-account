@@ -10,22 +10,41 @@ const pool = new Pool({
   port: process.env.PG_PORT || 5432,
 });
 
-// Check Account data
-const checkAccountData = async (id) => {
+// ✅ Tambahkan Fungsi untuk Mendapatkan Akun berdasarkan Email
+const getAccountByEmail = async (email) => {
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     const result = await client.query(
-      `SELECT id, customer_id, account_id, username, password, balance FROM accounts WHERE id = $1;`,
-      [id] // Adjust according to fetched parameter
+      `SELECT id, email, customer_id, account_id, username, password, balance FROM accounts WHERE email = $1;`,
+      [email]
     );
-
-    return Promise.resolve(result.rows);
+    return result.rows[0]; // Ambil user pertama jika ada
   } catch (error) {
     return Promise.reject(error);
+  } finally {
+    if (client) client.release(); // Pastikan koneksi dilepas
   }
 };
 
-// Insert Account data
+// ✅ Perbaiki `pool.connect()` dengan `finally` agar koneksi selalu dilepas
+const checkAccountData = async (id) => {
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query(
+      `SELECT id, customer_id, account_id, username, password, balance FROM accounts WHERE id = $1;`,
+      [id]
+    );
+    return result.rows;
+  } catch (error) {
+    return Promise.reject(error);
+  } finally {
+    if (client) client.release();
+  }
+};
+
+// ✅ Tambahkan release() pada insertAccountData
 const insertAccountData = async (
   id,
   customer_id,
@@ -34,49 +53,56 @@ const insertAccountData = async (
   password,
   balance
 ) => {
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     const currentDate = moment().format("YYYY-MM-DD HH:mm:ss");
 
     await client.query(
-      `INSERT INTO accounts (id, customer_id, account_id, username, password, balance, created_date) VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+      `INSERT INTO accounts (id, customer_id, account_id, username, password, balance, created_date) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7);`,
       [id, customer_id, account_id, username, password, balance, currentDate]
     );
 
-    return Promise.resolve(true);
+    return true;
   } catch (error) {
     return Promise.reject(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
-// Get all Accounts
+// ✅ Tambahkan release() pada getAllAccounts
 const getAllAccounts = async () => {
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     const result = await client.query(
       `SELECT id, customer_id, account_id, username, password, balance FROM accounts;`
     );
-
-    return Promise.resolve(result.rows);
+    return result.rows;
   } catch (error) {
     return Promise.reject(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
-// Delete Account data
+// ✅ Tambahkan release() pada deleteAccountData
 const deleteAccountData = async (id) => {
+  let client;
   try {
-    const client = await pool.connect();
-
+    client = await pool.connect();
     await client.query(`DELETE FROM accounts WHERE id = $1;`, [id]);
-
-    return Promise.resolve(true);
+    return true;
   } catch (error) {
     return Promise.reject(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
-// Update Account data
+// ✅ Tambahkan release() pada updateAccountData
 const updateAccountData = async (
   id,
   customer_id,
@@ -85,17 +111,19 @@ const updateAccountData = async (
   password,
   balance
 ) => {
+  let client;
   try {
-    const client = await pool.connect();
-
+    client = await pool.connect();
     await client.query(
-      `UPDATE accounts SET id = $1, customer_id = $2, account_id = $3, username = $4, password = $5, balance = $6 WHERE id = $7;`,
-      [id, customer_id, account_id, username, password, balance, id] // Assuming the first parameter is the ID to query against
+      `UPDATE accounts SET customer_id = $2, account_id = $3, username = $4, password = $5, balance = $6 
+       WHERE id = $1;`,
+      [id, customer_id, account_id, username, password, balance]
     );
-
-    return Promise.resolve(true);
+    return true;
   } catch (error) {
     return Promise.reject(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
@@ -105,4 +133,5 @@ module.exports = {
   getAllAccounts,
   deleteAccountData,
   updateAccountData,
+  getAccountByEmail, // ✅ Tambahkan fungsi baru ini agar `authenticate` di flow-account.js bisa bekerja
 };

@@ -6,6 +6,10 @@ const port = process.env.PG_PORT || 8080;
 const apiRouter = require("./src/controller/controller-account");
 require("dotenv").config();
 
+// Tambahan dari ChatGPT
+app.use(express.json()); // Pastikan ini ada
+app.use(express.urlencoded({ extended: true }));
+
 // PostgreSQL connection setup
 const pool = new Pool({
   user: process.env.PG_USER || "postgres",
@@ -40,7 +44,7 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, "0.0.0.0", () => {
-  console.log(`API listening at http://localhost:${port}/api/account`);
+  console.log(`API listening at http://localhost:${port}/api/accounts`);
 });
 
 module.exports = pool;

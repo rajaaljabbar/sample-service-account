@@ -3,6 +3,7 @@ node_modules/
 
 # Ignore environment files
 .env
+generateKey.js
 
 # Ignore compiled files
 *.class
