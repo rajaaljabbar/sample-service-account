@@ -37,14 +37,16 @@ const decrypt = (encryptedText) => {
   return decrypted;
 };
 
-// 🔵 Fungsi Membuat JWT
+// 🔵 Fungsi Membuat JWT (Ditambah Enkripsi)
 const createJWT = (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" }); // 7 hari lebih aman
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return encrypt(token); // Enkripsi JWT sebelum dikirim ke user
 };
 
-// 🔵 Fungsi Verifikasi JWT
-const verifyJWT = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET);
+// 🔵 Fungsi Verifikasi JWT (Dekripsi Dulu)
+const verifyJWT = (encryptedToken) => {
+  const decryptedToken = decrypt(encryptedToken); // Dekripsi token sebelum verifikasi
+  return jwt.verify(decryptedToken, process.env.JWT_SECRET);
 };
 
 // 🔵 Ekspos Fungsi

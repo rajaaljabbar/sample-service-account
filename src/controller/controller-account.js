@@ -6,7 +6,7 @@ require("dotenv").config();
 
 const superuser = process.env.SUPER_USER || "rajaaljabbar03@gmail.com";
 
-// 🟢 Login: Pastikan token menyimpan `email`
+// 🟢 Login: Pastikan token dienkripsi sebelum dikirim ke user
 const login = async (req, res) => {
   try {
     console.log("DEBUG: Incoming Request Body:", req.body);
@@ -20,17 +20,17 @@ const login = async (req, res) => {
 
     // Autentikasi user
     const user = await UsecaseAccounts.authenticate(email, password);
-    console.log("DEBUG: Data user dari DB:", user); // Cek apakah email ada di sini
+    console.log("DEBUG: Data user dari DB:", user);
 
     if (!user) {
       return res.status(401).json({ message: "Authentication failed" });
     }
 
-    // 🟢 Pastikan JWT menyimpan `email`
-    const payload = { id: user.id, email: user.email }; // Tambahkan `email`
-    const token = createJWT(payload);
+    // 🟢 Pastikan JWT dienkripsi
+    const payload = { id: user.id, email: user.email };
+    const token = createJWT(payload); // Menggunakan enkripsi JWT
 
-    console.log("DEBUG: JWT Created:", token);
+    console.log("DEBUG: Encrypted JWT Created:", token);
 
     res.json({ token });
   } catch (error) {
@@ -39,7 +39,7 @@ const login = async (req, res) => {
   }
 };
 
-// 🔵 Middleware: Pastikan JWT berisi `email`
+// 🔵 Middleware: Verifikasi JWT dengan Dekripsi
 const authenticateJWT = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
@@ -50,12 +50,9 @@ const authenticateJWT = (req, res, next) => {
   }
 
   try {
-    const user = verifyJWT(token);
-    console.log("DEBUG: Decoded Token after JWT verification:", user); // Pastikan email masih ada
+    const user = verifyJWT(token); // Dekripsi + Verifikasi
+    console.log("DEBUG: Decoded Token after JWT verification:", user);
 
-    console.log("DEBUG: Decoded Token:", user);
-
-    // 🔵 Cek apakah email ada dalam token
     if (!user.email) {
       console.error("ERROR: Token tidak memiliki email", user);
       return res.status(403).json({ message: "Email tidak ada dalam token" });
@@ -69,7 +66,7 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
-// Get Accounts
+// 🔵 Get Accounts
 const getAccounts = async (req, res) => {
   try {
     console.log("DEBUG: User from Token:", req.user);
@@ -92,7 +89,7 @@ const getAccounts = async (req, res) => {
   }
 };
 
-// Define Routes
+// 🔵 Define Routes
 router.post("/accounts/login", login);
 router.get("/accounts", authenticateJWT, getAccounts);
 
