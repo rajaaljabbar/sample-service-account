@@ -43,7 +43,7 @@ const login = async (req, res) => {
 const authenticateJWT = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
 
-  console.log("DEBUG: Received Token:", token);
+  // console.log("DEBUG: Received Token:", token);
 
   if (!token) {
     return res.status(403).json({ message: "Token tidak ditemukan" });
@@ -51,7 +51,7 @@ const authenticateJWT = (req, res, next) => {
 
   try {
     const user = verifyJWT(token); // Dekripsi + Verifikasi
-    console.log("DEBUG: Decoded Token after JWT verification:", user);
+    // console.log("DEBUG: Decoded Token after JWT verification:", user);
 
     if (!user.email) {
       console.error("ERROR: Token tidak memiliki email", user);

@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { Pool } = require("pg");
 const app = express();
-const port = process.env.PG_PORT || 8080;
+const port = process.env.PG_PORT || 3000;
 const apiRouter = require("./src/controller/controller-account");
 require("dotenv").config();
 
